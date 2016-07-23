@@ -322,11 +322,11 @@ public class JedisIndex {
 	private static void loadIndex(JedisIndex index) throws IOException {
 		WikiFetcher wf = new WikiFetcher();
 
-		String url = "https://en.wikipedia.org/wiki/Java_(programming_language)";
+		String url = "https://en.wikipedia.org/wiki/Education";
 		Elements paragraphs = wf.readWikipedia(url);
 		index.indexPage(url, paragraphs);
 		
-		url = "https://en.wikipedia.org/wiki/Programming_language";
+		url = "https://en.wikipedia.org/wiki/Sport";
 		paragraphs = wf.readWikipedia(url);
 		index.indexPage(url, paragraphs);
 	}

@@ -111,22 +111,30 @@ public class WikiCrawler {
 		// make a WikiCrawler
 		Jedis jedis = JedisMaker.make();
 		JedisIndex index = new JedisIndex(jedis); 
-		String source = "https://en.wikipedia.org/wiki/Java_(programming_language)";
+		String source = "https://en.wikipedia.org/wiki/Education";
 		WikiCrawler wc = new WikiCrawler(source, index);
 		
 		// for testing purposes, load up the queue
 		Elements paragraphs = wf.fetchWikipedia(source);
 		wc.queueInternalLinks(paragraphs);
 
-		// loop until we index a new page
-		String res;
+		// loop until you come accross 100 pages you already indexed
+		int count = 0;
 		do {
-			res = wc.crawl(false);
-		} while (res == null);
+			String res = wc.crawl(false);
+			if(res == null)
+			{
+				count++;
+			}
+		} while (count <= 100);
 		
 		Map<String, Integer> map = index.getCounts("the");
 		for (Entry<String, Integer> entry: map.entrySet()) {
 			System.out.println(entry);
 		}
+		
+//		index.deleteTermCounters();
+//		index.deleteURLSets();
+//		index.deleteAllKeys();
 	}
 }
