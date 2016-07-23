@@ -17,13 +17,14 @@ public class WikiFetcher {
 	private long minInterval = 1000;
 
 	/**
-	 * Fetches and parses a URL string, returning a list of paragraph elements.
+	 * Fetches and parses a URL string, returning a list of paragraph elements and
+	 * the number of translations the page has.
 	 *
 	 * @param url
 	 * @return
 	 * @throws IOException
 	 */
-	public Elements fetchWikipedia(String url) throws IOException {
+	public DataNode fetchData(String url) throws IOException {
 		sleepIfNeeded();
 
 		// download and parse the document
@@ -32,10 +33,14 @@ public class WikiFetcher {
 
 		// select the content text and pull out the paragraphs.
 		Element content = doc.getElementById("mw-content-text");
+		
+		//select the translations column and pull the number of translations in that list
+		Element translationColumn = doc.getElementById("p-lang");
+		int translations = translationColumn.select("li").size()-1;
 
 		// TODO: avoid selecting paragraphs from sidebars and boxouts
 		Elements paras = content.select("p");
-		return paras;
+		return new DataNode(paras, translations);
 	}
 
 	/**
@@ -59,6 +64,7 @@ public class WikiFetcher {
 		// TODO: factor out the following repeated code
 		Element content = doc.getElementById("mw-content-text");
 		Elements paras = content.select("p");
+		
 		return paras;
 	}
 
@@ -74,10 +80,18 @@ public class WikiFetcher {
 					//System.out.println("Sleeping until " + nextRequestTime);
 					Thread.sleep(nextRequestTime - currentTime);
 				} catch (InterruptedException e) {
-					System.err.println("Warning: sleep interrupted in fetchWikipedia.");
+					System.err.println("Warning: sleep interrupted in fetchContent.");
 				}
 			}
 		}
 		lastRequestTime = System.currentTimeMillis();
+	}
+	
+	public static void main (String[] args) throws IOException
+	{
+		WikiFetcher wf = new WikiFetcher();
+		DataNode results = wf.fetchData("https://en.wikipedia.org/wiki/Kobe_Bryant");
+		System.out.println("Number of translations: " + results.getTranslations());
+		//System.out.println("Paragraphs: " + results.getParagraphs());
 	}
 }

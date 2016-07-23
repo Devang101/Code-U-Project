@@ -69,7 +69,7 @@ public class WikiCrawler {
 		if (testing) {
 			paragraphs = wf.readWikipedia(url);
 		} else {
-			paragraphs = wf.fetchWikipedia(url);
+			paragraphs = wf.fetchData(url).getParagraphs();
 		}
 		index.indexPage(url, paragraphs);
 		queueInternalLinks(paragraphs);		
@@ -115,16 +115,20 @@ public class WikiCrawler {
 		WikiCrawler wc = new WikiCrawler(source, index);
 		
 		// for testing purposes, load up the queue
-		Elements paragraphs = wf.fetchWikipedia(source);
+		Elements paragraphs = wf.fetchData(source).getParagraphs();
 		wc.queueInternalLinks(paragraphs);
 
-		// loop until you come accross 100 pages you already indexed
+		// loop until you come across 100 pages you already indexed
 		int count = 0;
 		do {
 			String res = wc.crawl(false);
 			if(res == null)
 			{
 				count++;
+			}
+			else
+			{
+				count = 0;
 			}
 		} while (count <= 100);
 		

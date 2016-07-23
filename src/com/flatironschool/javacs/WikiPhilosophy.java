@@ -74,7 +74,7 @@ public class WikiPhilosophy {
 	 */
 	public static Element getFirstValidLink(String url) throws IOException {
 		print("Fetching %s...", url);
-		Elements paragraphs = wf.fetchWikipedia(url);
+		Elements paragraphs = wf.fetchData(url).getParagraphs();
 		WikiParser wp = new WikiParser(paragraphs);
 		Element elt = wp.findFirstLink();
 		return elt;

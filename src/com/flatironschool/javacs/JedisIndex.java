@@ -298,36 +298,36 @@ public class JedisIndex {
 	 * @param args
 	 * @throws IOException 
 	 */
-	public static void main(String[] args) throws IOException {
-		Jedis jedis = JedisMaker.make();
-		JedisIndex index = new JedisIndex(jedis);
-		
-		//index.deleteTermCounters();
-		//index.deleteURLSets();
-		//index.deleteAllKeys();
-		loadIndex(index);
-		
-		Map<String, Integer> map = index.getCountsFaster("the");
-		for (Entry<String, Integer> entry: map.entrySet()) {
-			System.out.println(entry);
-		}
-	}
+//	public static void main(String[] args) throws IOException {
+//		Jedis jedis = JedisMaker.make();
+//		JedisIndex index = new JedisIndex(jedis);
+//		
+//		//index.deleteTermCounters();
+//		//index.deleteURLSets();
+//		//index.deleteAllKeys();
+//		loadIndex(index);
+//		
+//		Map<String, Integer> map = index.getCountsFaster("the");
+//		for (Entry<String, Integer> entry: map.entrySet()) {
+//			System.out.println(entry);
+//		}
+//	}
 
-	/**
-	 * Stores two pages in the index for testing purposes.
-	 * 
-	 * @return
-	 * @throws IOException
-	 */
-	private static void loadIndex(JedisIndex index) throws IOException {
-		WikiFetcher wf = new WikiFetcher();
-
-		String url = "https://en.wikipedia.org/wiki/Education";
-		Elements paragraphs = wf.readWikipedia(url);
-		index.indexPage(url, paragraphs);
-		
-		url = "https://en.wikipedia.org/wiki/Sport";
-		paragraphs = wf.readWikipedia(url);
-		index.indexPage(url, paragraphs);
-	}
+//	/**
+//	 * Stores two pages in the index for testing purposes.
+//	 * 
+//	 * @return
+//	 * @throws IOException
+//	 */
+//	private static void loadIndex(JedisIndex index) throws IOException {
+//		WikiFetcher wf = new WikiFetcher();
+//
+//		String url = "https://en.wikipedia.org/wiki/Education";
+//		Elements paragraphs = wf.readWikipedia(url);
+//		index.indexPage(url, paragraphs);
+//		
+//		url = "https://en.wikipedia.org/wiki/Sport";
+//		paragraphs = wf.readWikipedia(url);
+//		index.indexPage(url, paragraphs);
+//	}
 }
