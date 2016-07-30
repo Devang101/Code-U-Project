@@ -33,8 +33,9 @@ public class WikiFetcher {
 
 		// select the content text and pull out the paragraphs.
 		Element content = doc.getElementById("mw-content-text");
-		
+
 		//select the translations column and pull the number of translations in that list
+    //handle no translations case
 		Element translationColumn = doc.getElementById("p-lang");
 		int translations = translationColumn.select("li").size()-1;
 
@@ -64,7 +65,7 @@ public class WikiFetcher {
 		// TODO: factor out the following repeated code
 		Element content = doc.getElementById("mw-content-text");
 		Elements paras = content.select("p");
-		
+
 		return paras;
 	}
 
@@ -86,7 +87,7 @@ public class WikiFetcher {
 		}
 		lastRequestTime = System.currentTimeMillis();
 	}
-	
+
 	public static void main (String[] args) throws IOException
 	{
 		WikiFetcher wf = new WikiFetcher();
