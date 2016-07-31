@@ -1,4 +1,3 @@
-package com.flatironschool.javacs;
 
 import org.jsoup.select.Elements;
 

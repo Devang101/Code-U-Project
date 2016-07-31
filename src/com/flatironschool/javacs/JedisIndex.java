@@ -1,4 +1,3 @@
-package com.flatironschool.javacs;
 
 import java.io.IOException;
 import java.util.Map;
@@ -30,36 +29,37 @@ public class JedisIndex {
 	public JedisIndex(Jedis jedis) {
 		this.jedis = jedis;
 	}
-	
+
 	/**
 	 * Returns the Redis key for a given search term.
 	 * 
 	 * @return Redis key.
 	 */
-	private String urlSetKey(String term) {
-		return "URLSet:" + term;
-	}
-	
-	/**
-	 * Returns the Redis key for a URL's TermCounter.
-	 * 
-	 * @return Redis key.
-	 */
-	private String termCounterKey(String url) {
-		return "TermCounter:" + url;
+	private String wordKey(String word) {
+		return "word:" + word;
 	}
 
 	/**
-	 * Checks whether we have a TermCounter for a given URL.
+	 * Returns the Redis key for a word's innerHashMap.
+	 * 
+	 * @return Redis key.
+	 */
+	private String innerHashMapOf(String url) {
+
+		return "fm:" + url;
+	}
+
+	/**
+	 * Checks whether we have a frequencyMap for a given word.
 	 * 
 	 * @param url
 	 * @return
 	 */
 	public boolean isIndexed(String url) {
-		String redisKey = termCounterKey(url);
-		return jedis.exists(redisKey);
+		String redisKey = innerHashMapOf(url);
+		return jedis.hexists("masterDB", innerHashMapOf(url));
 	}
-	
+
 	/**
 	 * Adds a URL to the set associated with `term`.
 	 * 
@@ -67,7 +67,7 @@ public class JedisIndex {
 	 * @param tc
 	 */
 	public void add(String term, TermCounter tc) {
-		jedis.sadd(urlSetKey(term), tc.getLabel());
+		//jedis.sadd(innerHashMapOf(term), tc.getLabel());
 	}
 
 	/**
@@ -77,7 +77,7 @@ public class JedisIndex {
 	 * @return Set of URLs.
 	 */
 	public Set<String> getURLs(String term) {
-		Set<String> set = jedis.smembers(urlSetKey(term));
+		Set<String> set = jedis.smembers(innerHashMapOf(term));
 		return set;
 	}
 
@@ -112,7 +112,7 @@ public class JedisIndex {
 		// construct a transaction to perform all lookups
 		Transaction t = jedis.multi();
 		for (String url: urls) {
-			String redisKey = termCounterKey(url);
+			String redisKey = innerHashMapOf(url);
 			t.hget(redisKey, term);
 		}
 		List<Object> res = t.exec();
@@ -136,7 +136,7 @@ public class JedisIndex {
 	 * @return
 	 */
 	public Integer getCount(String url, String term) {
-		String redisKey = termCounterKey(url);
+		String redisKey = innerHashMapOf(url);
 		String count = jedis.hget(redisKey, term);
 		return new Integer(count);
 	}
@@ -148,12 +148,12 @@ public class JedisIndex {
 	 * @param paragraphs  Collection of elements that should be indexed.
 	 */
 	public void indexPage(String url, Elements paragraphs) {
-		System.out.println("Indexing " + url);
-		
+		System.out.println("Indexing: " + url);
+
 		// make a TermCounter and count the terms in the paragraphs
 		TermCounter tc = new TermCounter(url);
 		tc.processElements(paragraphs);
-		
+
 		// push the contents of the TermCounter to Redis
 		pushTermCounterToRedis(tc);
 	}
@@ -166,19 +166,21 @@ public class JedisIndex {
 	 */
 	public List<Object> pushTermCounterToRedis(TermCounter tc) {
 		Transaction t = jedis.multi();
-		
-		String url = tc.getLabel();
-		String hashname = termCounterKey(url);
-		
-		// if this page has already been indexed; delete the old hash
-		t.del(hashname);
 
-		// for each term, add an entry in the termcounter and a new
+		//String url = tc.getLabel();
+		//String hashname = innerHashMapOf(url);
+
+		// if this page has already been indexed; delete the old hash
+		//t.del(hashname);
+
+		// for each term, add an entry in the term counter and a new
 		// member of the index
 		for (String term: tc.keySet()) {
 			Integer count = tc.get(term);
-			t.hset(hashname, term, count.toString());
-			t.sadd(urlSetKey(term), url);
+
+			//t.hset("masterDB", term, hashname);
+			//t.sadd(hashname, url, String.valueOf(count));
+
 		}
 		List<Object> res = t.exec();
 		return res;
@@ -193,7 +195,7 @@ public class JedisIndex {
 		// loop through the search terms
 		for (String term: termSet()) {
 			System.out.println(term);
-			
+
 			// for each term, print the pages where it appears
 			Set<String> urls = getURLs(term);
 			for (String url: urls) {
@@ -232,7 +234,7 @@ public class JedisIndex {
 	 * @return
 	 */
 	public Set<String> urlSetKeys() {
-		return jedis.keys("URLSet:*");
+		return jedis.keys("w:*");
 	}
 
 	/**
@@ -243,7 +245,7 @@ public class JedisIndex {
 	 * @return
 	 */
 	public Set<String> termCounterKeys() {
-		return jedis.keys("TermCounter:*");
+		return jedis.keys("fm:*");
 	}
 
 	/**
@@ -298,36 +300,36 @@ public class JedisIndex {
 	 * @param args
 	 * @throws IOException 
 	 */
-//	public static void main(String[] args) throws IOException {
-//		Jedis jedis = JedisMaker.make();
-//		JedisIndex index = new JedisIndex(jedis);
-//		
-//		//index.deleteTermCounters();
-//		//index.deleteURLSets();
-//		//index.deleteAllKeys();
-//		loadIndex(index);
-//		
-//		Map<String, Integer> map = index.getCountsFaster("the");
-//		for (Entry<String, Integer> entry: map.entrySet()) {
-//			System.out.println(entry);
-//		}
-//	}
+	public static void main(String[] args) throws IOException {
+		/*Jedis jedis = JedisMaker.make();
+		JedisIndex index = new JedisIndex(jedis);
 
-//	/**
-//	 * Stores two pages in the index for testing purposes.
-//	 * 
-//	 * @return
-//	 * @throws IOException
-//	 */
-//	private static void loadIndex(JedisIndex index) throws IOException {
-//		WikiFetcher wf = new WikiFetcher();
-//
-//		String url = "https://en.wikipedia.org/wiki/Education";
-//		Elements paragraphs = wf.readWikipedia(url);
-//		index.indexPage(url, paragraphs);
-//		
-//		url = "https://en.wikipedia.org/wiki/Sport";
-//		paragraphs = wf.readWikipedia(url);
-//		index.indexPage(url, paragraphs);
-//	}
+		index.deleteTermCounters();
+		index.deleteURLSets();
+		index.deleteAllKeys();*/
+		//loadIndex(index);
+
+		//		Map<String, Integer> map = index.getCountsFaster("the");
+		//		for (Entry<String, Integer> entry: map.entrySet()) {
+		//			System.out.println(entry);
+		//		}
+		//	}
+
+		//	/**
+		//	 * Stores two pages in the index for testing purposes.
+		//	 * 
+		//	 * @return
+		//	 * @throws IOException
+		//	 */
+		//	private static void loadIndex(JedisIndex index) throws IOException {
+		//		WikiFetcher wf = new WikiFetcher();
+		//
+		//		String url = "https://en.wikipedia.org/wiki/Education";
+		//		Elements paragraphs = wf.readWikipedia(url);
+		//		index.indexPage(url, paragraphs);
+		//		
+		//		url = "https://en.wikipedia.org/wiki/Sport";
+		//		paragraphs = wf.readWikipedia(url);
+		//		index.indexPage(url, paragraphs);
+	}
 }

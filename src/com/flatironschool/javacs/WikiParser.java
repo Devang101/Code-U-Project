@@ -1,4 +1,3 @@
-package com.flatironschool.javacs;
 
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;

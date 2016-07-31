@@ -1,4 +1,3 @@
-package com.flatironschool.javacs;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -30,6 +29,10 @@ public class TermCounter {
 		return label;
 	}
 	
+	public void setLabel(String newLabel){
+		label = newLabel;
+	}
+	
 	/**
 	 * Returns the total of all counts.
 	 * 
@@ -49,9 +52,11 @@ public class TermCounter {
 	 * @param paragraphs
 	 */
 	public void processElements(Elements paragraphs) {
+
 		for (Node node: paragraphs) {
 			processTree(node);
 		}
+
 	}
 	
 	/**
@@ -67,6 +72,10 @@ public class TermCounter {
 				processText(((TextNode) node).text());
 			}
 		}
+	}
+	
+	public int getCount(String s){
+		return (map.containsKey(s)==true?map.get(s):0);
 	}
 
 	/**
@@ -135,18 +144,18 @@ public class TermCounter {
 		System.out.println("Total of all counts = " + size());
 	}
 
-//	/**
-//	 * @param args
-//	 * @throws IOException 
-//	 */
-//	public static void main(String[] args) throws IOException {
-//		String url = "https://en.wikipedia.org/wiki/Java_(programming_language)";
-//		
-//		WikiFetcher wf = new WikiFetcher();
-//		Elements paragraphs = wf.fetchData(url).getParagraphs();
-//		
-//		TermCounter counter = new TermCounter(url.toString());
-//		counter.processElements(paragraphs);
-//		counter.printCounts();
-//	}
+	/**
+	 * @param args
+	 * @throws IOException 
+	 */
+	public static void main(String[] args) throws IOException {
+		String url = "https://en.wikipedia.org/wiki/Java_(programming_language)";
+		
+		WikiFetcher wf = new WikiFetcher();
+		Elements paragraphs = wf.fetchData(url).getParagraphs();
+		
+		TermCounter counter = new TermCounter(url.toString());
+		counter.processElements(paragraphs);
+		counter.printCounts();
+	}
 }

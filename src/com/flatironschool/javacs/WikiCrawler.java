@@ -1,4 +1,3 @@
-package com.flatironschool.javacs;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -15,13 +14,15 @@ import redis.clients.jedis.Jedis;
 public class WikiCrawler {
 	// keeps track of where we started
 	private final String source;
-	
-	// the index where the results go
-	private JedisIndex index;
-	
+	private static int count;
+
+
+	private static cooliesIndexer index;
+	private static TermCounter tc;
+
 	// queue of URLs to be indexed
 	private Queue<String> queue = new LinkedList<String>();
-	
+
 	// fetcher used to get pages from Wikipedia
 	final static WikiFetcher wf = new WikiFetcher();
 
@@ -31,9 +32,9 @@ public class WikiCrawler {
 	 * @param source
 	 * @param index
 	 */
-	public WikiCrawler(String source, JedisIndex index) {
+	public WikiCrawler(String source, cooliesIndexer n) {
+		index = n;
 		this.source = source;
-		this.index = index;
 		queue.offer(source);
 	}
 
@@ -54,25 +55,29 @@ public class WikiCrawler {
 	 * @throws IOException
 	 */
 	public String crawl(boolean testing) throws IOException {
+
 		if (queue.isEmpty()) {
 			return null;
 		}
 		String url = queue.poll();
 		System.out.println("Crawling " + url);
 
-		if (testing==false && index.isIndexed(url)) {
+
+		if (testing==false && index.getUrlDB().get(url)!=null) {
 			System.out.println("Already indexed.");
 			return null;
 		}
-		
+
 		Elements paragraphs;
 		if (testing) {
 			paragraphs = wf.readWikipedia(url);
 		} else {
 			paragraphs = wf.fetchData(url).getParagraphs();
 		}
-		index.indexPage(url, paragraphs);
-		queueInternalLinks(paragraphs);		
+		tc.setLabel(url);
+		
+		index.indexPage(url, paragraphs,tc);
+		queueInternalLinks(paragraphs);
 		return url;
 	}
 
@@ -97,7 +102,7 @@ public class WikiCrawler {
 		Elements elts = paragraph.select("a[href]");
 		for (Element elt: elts) {
 			String relURL = elt.attr("href");
-			
+
 			if (relURL.startsWith("/wiki/")) {
 				String absURL = "https://en.wikipedia.org" + relURL;
 				//System.out.println(absURL);
@@ -105,40 +110,27 @@ public class WikiCrawler {
 			}
 		}
 	}
-	
+
+
 	public static void main(String[] args) throws IOException {
-		
-		// make a WikiCrawler
-		Jedis jedis = JedisMaker.make();
-		JedisIndex index = new JedisIndex(jedis); 
-		String source = "https://en.wikipedia.org/wiki/Education";
-		WikiCrawler wc = new WikiCrawler(source, index);
-		
+
+		String source = "https://en.wikipedia.org/wiki/Google";
+		cooliesIndexer n = new cooliesIndexer();
+		tc = new TermCounter(source);
+		WikiCrawler wc = new WikiCrawler(source, n);
+
 		// for testing purposes, load up the queue
 		Elements paragraphs = wf.fetchData(source).getParagraphs();
 		wc.queueInternalLinks(paragraphs);
 
-		// loop until you come across 100 pages you already indexed
-		int count = 0;
+		// loop until you come across 1000 pages you already indexed
 		do {
-			String res = wc.crawl(false);
-			if(res == null)
-			{
-				count++;
-			}
-			else
-			{
-				count = 0;
-			}
-		} while (count <= 100);
+			//System.out.println("KB: " + (double) (Runtime.getRuntime().freeMemory()));
+			wc.crawl(false);
+			//System.out.println("KB: " + (double) (Runtime.getRuntime().freeMemory()));
+		} while (count<1001);
 		
-		Map<String, Integer> map = index.getCounts("the");
-		for (Entry<String, Integer> entry: map.entrySet()) {
-			System.out.println(entry);
-		}
 		
-//		index.deleteTermCounters();
-//		index.deleteURLSets();
-//		index.deleteAllKeys();
+		
 	}
 }
