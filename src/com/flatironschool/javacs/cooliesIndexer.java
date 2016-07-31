@@ -1,3 +1,5 @@
+package com.flatironschool.javacs;
+
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;

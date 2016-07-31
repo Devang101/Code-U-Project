@@ -1,3 +1,5 @@
+package com.flatironschool.javacs;
+
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -125,7 +127,7 @@ public class WikiCrawler {
         // loop until you come across 1000 pages you already indexed
         do {
             //System.out.println("KB: " + (double) (Runtime.getRuntime().freeMemory()));
-            wc.crawl(false);
+            wc.crawl();
             //System.out.println("KB: " + (double) (Runtime.getRuntime().freeMemory()));
         } while (count<1001);
 

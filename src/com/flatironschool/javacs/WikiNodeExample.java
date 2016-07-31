@@ -1,3 +1,5 @@
+package com.flatironschool.javacs;
+
 
 import java.io.IOException;
 import java.util.ArrayDeque;

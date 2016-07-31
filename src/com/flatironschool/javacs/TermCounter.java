@@ -176,8 +176,8 @@ public class TermCounter {
 		WikiFetcher wf = new WikiFetcher();
 		DataNode data = wf.fetchData(url);
 
-		TermCounter counter = new TermCounter(data.getParagraphs(), data.getTranslations());
-		counter.processElements(paragraphs);
+		TermCounter counter = new TermCounter(url);
+		counter.processElements(data.getParagraphs());
 		counter.printCounts();
 	}
 }

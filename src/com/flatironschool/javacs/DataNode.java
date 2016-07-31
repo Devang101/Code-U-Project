@@ -1,4 +1,4 @@
-
+package com.flatironschool.javacs;
 import org.jsoup.select.Elements;
 
 //node to return data so that you don't have to fetch and download a wikiPage multiple times
@@ -16,7 +16,7 @@ public class DataNode
 		this.translations = trans;
 	}
 	public void empty() {
-		this.paragraph = null;
+		this.paragraphs = null;
 		this.translations = 0;
 	}
 	public Elements getParagraphs(){return this.paragraphs;}
