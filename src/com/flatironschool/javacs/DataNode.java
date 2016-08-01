@@ -1,4 +1,4 @@
-package com.flatironschool.javacs;
+
 import org.jsoup.select.Elements;
 
 //node to return data so that you don't have to fetch and download a wikiPage multiple times

@@ -9,12 +9,16 @@ import java.util.HashMap;
 
 public  class Database {
     public static HashMap<String, HashMap<Integer, Integer>> masterDB;
-    public static  HashMap<String, Integer> urlDB;
-    public static int ID = 0;
-    public static int count = 0;
+    public static  HashMap<String,Integer> urlDB;
+    public static int ID;
     
-    
+    public Database() {
+    	masterDB = new HashMap<String, HashMap<Integer, Integer>>();
+    	urlDB = new HashMap<String,Integer>();
+    	ID = 0;
+    }
     public static void populateMasterDB(){
+    	System.out.println("Importing..");
         masterDB = new HashMap<String, HashMap<Integer, Integer>>();
         String csvFile = "MasterDB.csv";
         String line = "";
