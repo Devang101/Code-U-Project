@@ -55,12 +55,13 @@ public class WikiCrawler {
      * @return Number of pages indexed.
      * @throws IOException
      */
-    public String crawl(boolean testing) throws IOException {
+    public String crawl() throws IOException {
         
         if (queue.isEmpty()) {
             return null;
         }
         String url = queue.poll();
+        url = url.substring(url.indexOf("wiki/"));
         System.out.println("Crawling " + url);
         
         
@@ -74,13 +75,12 @@ public class WikiCrawler {
             return null;
         }
         
-        Elements paragraphs;
-        if (testing) {
-            paragraphs = wf.readWikipedia(url);
-        } else {
-            paragraphs = wf.fetchData(url).getParagraphs();
-        }
+        DataNode stuffOnThisPage = wf.fetchData("https://en.wikipedia.org/" + url);
+        Elements paragraphs = stuffOnThisPage.getParagraphs();
+        int translations = stuffOnThisPage.getTranslations();
+        
         tc.setLabel(url);
+        tc.setTranlations(translations);
         
         index.indexPage(url, paragraphs,tc);
         queueInternalLinks(paragraphs);
@@ -138,11 +138,11 @@ public class WikiCrawler {
         count = 0;
         do {
             //System.out.println("KB: " + (double) (Runtime.getRuntime().freeMemory()));
-            wc.crawl(false);
+            wc.crawl();
             count++;
             //System.out.println("KB: " + (double) (Runtime.getRuntime().freeMemory()));
-        } while (count<26);
-        //Database.exportMasterDBToCSV();
-        //Database.exportUrlDBToCSV();
+        } while (count<100);
+        Database.exportMasterDBToCSV();
+        Database.exportUrlDBToCSV();
     }
 }

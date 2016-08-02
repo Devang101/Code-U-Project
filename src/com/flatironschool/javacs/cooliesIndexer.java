@@ -66,11 +66,11 @@ public class cooliesIndexer {
             }
         }
         
-        
+            
     }
     
     
-    private Integer getUrlID(String url, TermCounter tc) {
+    public Integer getUrlID(String url, TermCounter tc) {
         // TODO Auto-generated method stub
         if(Database.urlDB.containsKey(url)){
             return (Integer) Database.urlDB.get(url).keySet().toArray()[0];

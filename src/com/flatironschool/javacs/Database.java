@@ -21,15 +21,15 @@ public  class Database {
         masterDB = new HashMap<String, HashMap<Integer, Integer>>();
         String csvFile = "MasterDB.csv";
         String line = "";
-        String csvSplitBy = ",";
+        String csvSplitBy = ";";
         
         try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
             
             while ((line = br.readLine()) != null) {
-                
+               
                 // use comma as separator
                 String[] array = line.split(csvSplitBy);
-                
+          
                 masterDB.put(array[0], new HashMap<Integer, Integer>());
                 for(int i=1; i<array.length;i++){
                     masterDB.get(array[0]).put(extractID(array[i]), extractRelevancy(array[i]));
@@ -46,23 +46,26 @@ public  class Database {
         urlDB = new HashMap<String, HashMap<Integer, Integer>>();
         String csvFile = "urlDB.csv";
         String line = "";
-        String csvSplitBy = ",";
+        String csvSplitBy = ";";
         
         try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
             
             while ((line = br.readLine()) != null) {
-                
+                System.out.println(line);
                 // use comma as separator
                 String[] array = line.split(csvSplitBy);
                 
+                System.out.println(Arrays.toString(array));
+        
+                
                 urlDB.put(array[0], new HashMap<Integer, Integer>());
-                if(array.length==2){
+//                if(array.length==2){
                     urlDB.get(array[0]).put(extractID(array[1]), extractRelevancy(array[1]));
                     
-                }else{
-                    urlDB.get(array[0]).put(extractID(array[2]), extractRelevancy(array[2]));
-                    
-                }
+//                }else{
+//                    urlDB.get(array[0]).put(extractID(array[2]), extractRelevancy(array[2]));
+//                    
+//                }
                 
                 
             }
@@ -109,10 +112,10 @@ public  class Database {
             for(String word: masterDB.keySet()){
                 StringBuilder sb = new StringBuilder();
                 sb.append(word);
-                sb.append(',');
+                sb.append(';');
                 for(Integer id: masterDB.get(word).keySet()){
                     sb.append(""+id+'-'+masterDB.get(word).get(id));
-                    sb.append(',');
+                    sb.append(';');
                 }
                 sb.append('\n');
                 pw.write(sb.toString());
@@ -131,13 +134,13 @@ public  class Database {
         try {
             pw = new PrintWriter(new File("urlDB.csv"));
             
-            for(String word: urlDB.keySet()){
+            for(String url: urlDB.keySet()){
                 StringBuilder sb = new StringBuilder();
-                sb.append(word);
-                sb.append(',');
-                for(Integer id: urlDB.get(word).keySet()){
-                    sb.append(""+id+'-'+urlDB.get(word).get(id));
-                    sb.append(',');
+                sb.append(url);
+                sb.append(';');
+                for(Integer id: urlDB.get(url).keySet()){
+                    sb.append(""+id+'-'+urlDB.get(url).get(id));
+                    sb.append(';');
                 }
                 sb.append('\n');
                 pw.write(sb.toString());
@@ -165,7 +168,7 @@ public  class Database {
          
          System.out.println("about to");
          exportMasterDBToCSV();*/
-        //populateMasterDB();
+        populateMasterDB();
         populateUrlDB();
         //rintDB();
         

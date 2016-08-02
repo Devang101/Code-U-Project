@@ -91,7 +91,7 @@ public class WikiFetcher {
 	public static void main (String[] args) throws IOException
 	{
 		WikiFetcher wf = new WikiFetcher();
-		DataNode results = wf.fetchData("https://en.wikipedia.org/wiki/Kobe_Bryant");
+		DataNode results = wf.fetchData("https://en.wikipedia.org/wiki/Larry_Page");
 		System.out.println("Number of translations: " + results.getTranslations());
 		//System.out.println("Paragraphs: " + results.getParagraphs());
 	}
