@@ -1,5 +1,3 @@
-
-
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -26,7 +24,6 @@ public class cooliesIndexer {
      * @param jedis
      */
     public cooliesIndexer() {
-        
     }
     
     
@@ -60,12 +57,12 @@ public class cooliesIndexer {
     public void pushToDatabase(TermCounter tc) {
         
         for (String term: tc.keySet()) {
-            int relevancyScore =tc.get(term)+tc.getTranslations();
+            int count =tc.get(term);
             if(Database.masterDB.containsKey(term)){
-                Database.masterDB.get(term).put(getUrlID(tc.getLabel()), relevancyScore);
+                Database.masterDB.get(term).put(getUrlID(tc.getLabel(), tc), count);
             }else{
                 Database.masterDB.put(term, new HashMap<Integer, Integer>());
-                Database.masterDB.get(term).put(getUrlID(tc.getLabel()), relevancyScore);
+                Database.masterDB.get(term).put(getUrlID(tc.getLabel(), tc), count);
             }
         }
         
@@ -73,14 +70,16 @@ public class cooliesIndexer {
     }
     
     
-    private Integer getUrlID(String url) {
+    private Integer getUrlID(String url, TermCounter tc) {
         // TODO Auto-generated method stub
-        if(Database.masterDB.containsKey(url)){
-            return Database.urlDB.get(url);
+        if(Database.urlDB.containsKey(url)){
+            return (Integer) Database.urlDB.get(url).keySet().toArray()[0];
         }else{
-            Database.urlDB.put(url, Database.ID);
+            Database.urlDB.put(url, new HashMap<Integer, Integer>());
+            int id = Database.ID;
+            Database.urlDB.get(url).put(id,tc.getTranslations());
             Database.ID++;
-            return Database.ID-1;
+            return id;
         }
     }
     

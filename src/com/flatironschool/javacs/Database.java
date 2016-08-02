@@ -6,23 +6,20 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 
 public  class Database {
     public static HashMap<String, HashMap<Integer, Integer>> masterDB;
-    public static  HashMap<String,Integer> urlDB;
-    public static int ID;
+    public static  HashMap<String, HashMap<Integer, Integer>> urlDB;
+    public static int ID = 0;
+    public static int count = 0;
     
-    public Database() {
-    	masterDB = new HashMap<String, HashMap<Integer, Integer>>();
-    	urlDB = new HashMap<String,Integer>();
-    	ID = 0;
-    }
+    
     public static void populateMasterDB(){
-    	System.out.println("Importing..");
         masterDB = new HashMap<String, HashMap<Integer, Integer>>();
         String csvFile = "MasterDB.csv";
         String line = "";
-        String csvSplitBy = ",";
+        String csvSplitBy = "|";
         
         try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
             
@@ -42,18 +39,57 @@ public  class Database {
             e.printStackTrace();
         }
     }
-    
+    public static void populateUrlDB(){
+        urlDB = new HashMap<String, HashMap<Integer, Integer>>();
+        String csvFile = "urlDB.csv";
+        String line = "";
+        String csvSplitBy = ",";
+        
+        try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
+            
+            while ((line = br.readLine()) != null) {
+                
+                // use comma as separator
+                String[] array = line.split(csvSplitBy);
+                
+                urlDB.put(array[0], new HashMap<Integer, Integer>());
+                for(int i=1; i<array.length;i++){
+                    urlDB.get(array[0]).put(extractID(array[i]), extractRelevancy(array[i]));
+                }
+                
+            }
+            
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
     public static void printDB(){
         System.out.println(masterDB.toString());
         
     }
     
     public static Integer extractID(String s){
-        return Integer.valueOf(s.substring(0,s.indexOf('-')));
+        try{
+            return Integer.valueOf(s.substring(0,s.lastIndexOf('-')));
+            
+        } catch (Exception e){
+            System.out.println(s);
+            
+            //return Integer.valueOf(s.substring(0,s.lastIndexOf('-')));
+            
+        }
+        return 0;
     }
     
     public static Integer extractRelevancy(String s){
-        return Integer.valueOf(s.substring(s.indexOf('-')+1));
+        try{
+            return Integer.valueOf(s.substring(s.indexOf('-')+1));
+            
+        }catch (Exception e){
+            System.out.println(s);
+            
+        }
+        return 0;
     }
     
     
@@ -65,10 +101,10 @@ public  class Database {
             for(String word: masterDB.keySet()){
                 StringBuilder sb = new StringBuilder();
                 sb.append(word);
-                sb.append(',');
+                sb.append('|');
                 for(Integer id: masterDB.get(word).keySet()){
                     sb.append(""+id+'-'+masterDB.get(word).get(id));
-                    sb.append(',');
+                    sb.append('|');
                 }
                 sb.append('\n');
                 pw.write(sb.toString());
@@ -81,35 +117,28 @@ public  class Database {
         }
     }
     
-    public void exportUrlDBToCSV(){
+    
+    public static void exportUrlDBToCSV(){
         PrintWriter pw;
         try {
-            pw = new PrintWriter(new File("UrlDB.csv"));
+            pw = new PrintWriter(new File("urlDB.csv"));
             
-            for(String url: urlDB.keySet()){
+            for(String word: urlDB.keySet()){
                 StringBuilder sb = new StringBuilder();
-                sb.append(url);
-                sb.append(',');
-                sb.append(urlDB.get(url));
+                sb.append(word);
+                sb.append('|');
+                for(Integer id: urlDB.get(word).keySet()){
+                    sb.append(""+id+'-'+urlDB.get(word).get(id));
+                    sb.append('|');
+                }
                 sb.append('\n');
                 pw.write(sb.toString());
             }
             pw.close();
-            System.out.println("Finished Writing urlDB CSV File!");
+            System.out.println("Finished Writing masterDB CSV File!");
         } catch (FileNotFoundException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-        }
-    }
-    
-    private Integer getUrlID(String url) {
-        // TODO Auto-generated method stub
-        if(Database.masterDB.containsKey(url)){
-            return urlDB.get(url);
-        }else{
-            Database.urlDB.put(url, Database.ID);
-            Database.ID++;
-            return Database.ID-1;
         }
     }
     
