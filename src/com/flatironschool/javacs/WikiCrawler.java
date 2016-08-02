@@ -61,7 +61,7 @@ public class WikiCrawler {
             return null;
         }
         String url = queue.poll();
-        url = url.substring(url.indexOf("wiki/"));
+        url = url.substring(url.lastIndexOf("/")+1);
         System.out.println("Crawling " + url);
         
         
@@ -75,7 +75,7 @@ public class WikiCrawler {
             return null;
         }
         
-        DataNode stuffOnThisPage = wf.fetchData("https://en.wikipedia.org/" + url);
+        DataNode stuffOnThisPage = wf.fetchData("https://en.wikipedia.org/wiki/" + url);
         Elements paragraphs = stuffOnThisPage.getParagraphs();
         int translations = stuffOnThisPage.getTranslations();
         
