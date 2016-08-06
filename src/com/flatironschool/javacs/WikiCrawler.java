@@ -1,15 +1,10 @@
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Queue;
 
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-
-import redis.clients.jedis.Jedis;
 
 
 public class WikiCrawler {
@@ -19,7 +14,7 @@ public class WikiCrawler {
     
     
     private static cooliesIndexer index;
-    private static TermCounter tc;
+    //sprivate static TermCounter tc;
     
     // queue of URLs to be indexed
     private Queue<String> queue = new LinkedList<String>();
@@ -48,6 +43,18 @@ public class WikiCrawler {
         return queue.size();
     }
     
+    public Integer isIndexed(String url)
+    {
+    	for(Integer urlID : Database.urlDB.keySet())
+    	{
+    		if(url.equals((String) Database.urlDB.get(urlID).get(0)))
+    		{
+    			return urlID;
+    		}
+    	}
+    	return null;
+    }
+    
     /**
      * Gets a URL from the queue and indexes it.
      * @param b
@@ -64,26 +71,27 @@ public class WikiCrawler {
         url = url.substring(url.lastIndexOf("/")+1);
         System.out.println("Crawling " + url);
         
-        
-        if (Database.urlDB.containsKey(url)) {
+        Integer urlID = isIndexed(url);
+        if (urlID != null) 
+        {
             System.out.println("Already indexed.");
             //update relevancy score
-            int initialRelevancy = (int) Database.urlDB.get(url).values().toArray()[0];
-            Integer id = (Integer) Database.urlDB.get(url).keySet().toArray()[0];
-            int newRel = initialRelevancy + 3;
-            Database.urlDB.get(url).put(id, newRel);
+            int initialRelevancy = (Integer) Database.urlDB.get(urlID).get(1);
+            int newRel = initialRelevancy + 1;
+            Database.urlDB.get(urlID).add(url);
+            Database.urlDB.get(urlID).add(newRel);
             return null;
         }
         
         DataNode stuffOnThisPage = wf.fetchData("https://en.wikipedia.org/wiki/" + url);
         Elements paragraphs = stuffOnThisPage.getParagraphs();
         int translations = stuffOnThisPage.getTranslations();
+        int OutGoingUrls = queueInternalLinks(paragraphs);
         
-        tc.setLabel(url);
-        tc.setTranlations(translations);
+        TermCounter tc = new TermCounter();
+        index.indexPage(url, translations, OutGoingUrls, paragraphs,tc);
         
-        index.indexPage(url, paragraphs,tc);
-        queueInternalLinks(paragraphs);
+        
         return url;
     }
     
@@ -93,10 +101,12 @@ public class WikiCrawler {
      * @param paragraphs
      */
     // NOTE: absence of access level modifier means package-level
-    void queueInternalLinks(Elements paragraphs) {
+    int queueInternalLinks(Elements paragraphs) {
+    	int total = 0;
         for (Element paragraph: paragraphs) {
-            queueInternalLinks(paragraph);
+            total += queueInternalLinks(paragraph);
         }
+        return total;
     }
     
     /**
@@ -104,8 +114,9 @@ public class WikiCrawler {
      *
      * @param paragraph
      */
-    private void queueInternalLinks(Element paragraph) {
+    private int queueInternalLinks(Element paragraph) {
         Elements elts = paragraph.select("a[href]");
+        int totalUrls = elts.size();
         for (Element elt: elts) {
             String relURL = elt.attr("href");
             
@@ -115,6 +126,7 @@ public class WikiCrawler {
                 queue.offer(absURL);
             }
         }
+        return totalUrls;
     }
     
     
@@ -122,7 +134,6 @@ public class WikiCrawler {
         
         String source = "https://en.wikipedia.org/wiki/Google";
         cooliesIndexer n = new cooliesIndexer();
-        tc = new TermCounter(source);
         WikiCrawler wc = new WikiCrawler(source, n);
         //Database.masterDB = new HashMap<String, HashMap<Integer, Integer>>();
         //Database.urlDB = new HashMap<String, HashMap<Integer, Integer>>();
@@ -139,9 +150,11 @@ public class WikiCrawler {
         do {
             //System.out.println("KB: " + (double) (Runtime.getRuntime().freeMemory()));
             wc.crawl();
+
+            
             count++;
             //System.out.println("KB: " + (double) (Runtime.getRuntime().freeMemory()));
-        } while (count<100);
+        } while (count<200);
         Database.exportMasterDBToCSV();
         Database.exportUrlDBToCSV();
     }

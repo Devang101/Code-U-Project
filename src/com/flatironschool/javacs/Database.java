@@ -4,13 +4,12 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 
 public  class Database {
     public static HashMap<String, HashMap<Integer, Integer>> masterDB;
-    public static  HashMap<String, HashMap<Integer, Integer>> urlDB;
+    public static  HashMap<Integer, ArrayList> urlDB;
     public static int ID = 0;
     public static int count = 0;
     
@@ -43,7 +42,7 @@ public  class Database {
     }
     public static void populateUrlDB(){
         System.out.println("Populating urlDB");
-        urlDB = new HashMap<String, HashMap<Integer, Integer>>();
+        urlDB = new HashMap<Integer, ArrayList>();
         String csvFile = "urlDB.csv";
         String line = "";
         String csvSplitBy = ";";
@@ -51,21 +50,20 @@ public  class Database {
         try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
             
             while ((line = br.readLine()) != null) {
-                System.out.println(line);
+                //System.out.println(line);
                 // use comma as separator
                 String[] array = line.split(csvSplitBy);
                 
-                System.out.println(Arrays.toString(array));
+                Integer urlID = Integer.valueOf(array[0]);
+                String url = array[1];
+                Integer fixedRel = Integer.valueOf(array[2]);
+                
+                //System.out.println(Arrays.toString(array));
         
                 
-                urlDB.put(array[0], new HashMap<Integer, Integer>());
-//                if(array.length==2){
-                    urlDB.get(array[0]).put(extractID(array[1]), extractRelevancy(array[1]));
-                    
-//                }else{
-//                    urlDB.get(array[0]).put(extractID(array[2]), extractRelevancy(array[2]));
-//                    
-//                }
+                urlDB.put(Integer.valueOf(urlID), new ArrayList());
+                urlDB.get(Integer.valueOf(urlID)).add(url);
+                urlDB.get(Integer.valueOf(urlID)).add(fixedRel);
                 
                 
             }
@@ -134,14 +132,14 @@ public  class Database {
         try {
             pw = new PrintWriter(new File("urlDB.csv"));
             
-            for(String url: urlDB.keySet()){
+            for(Integer urlID: urlDB.keySet()){
                 StringBuilder sb = new StringBuilder();
-                sb.append(url);
+                sb.append(urlID);
                 sb.append(';');
-                for(Integer id: urlDB.get(url).keySet()){
-                    sb.append(""+id+'-'+urlDB.get(url).get(id));
-                    sb.append(';');
-                }
+                String url = (String) urlDB.get(urlID).get(0);
+                String fixedRel = urlDB.get(urlID).get(1).toString();
+                sb.append(url+';'+fixedRel);
+                sb.append(';');
                 sb.append('\n');
                 pw.write(sb.toString());
             }

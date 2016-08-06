@@ -1,18 +1,6 @@
-import java.io.IOException;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.io.FileWriter;
-import java.util.Arrays;
-
 import org.jsoup.select.Elements;
-
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.Transaction;
 
 public class cooliesIndexer {
     
@@ -34,7 +22,7 @@ public class cooliesIndexer {
      * @param url         URL of the page.
      * @param paragraphs  Collection of elements that should be indexed.
      */
-    public void indexPage(String url, Elements paragraphs, TermCounter tc) {
+    public void indexPage(String url, int translations, int OutGoingUrls, Elements paragraphs, TermCounter tc) {
         
         // make a TermCounter and count the terms in the paragraphs
         tc.processElements(paragraphs);
@@ -43,7 +31,7 @@ public class cooliesIndexer {
             System.out.println("Indexing: " + url);
             
             // push the contents of the TermCounter to Redis
-            pushToDatabase(tc);
+            pushToDatabase(url, translations, OutGoingUrls, tc);
         }
         
     }
@@ -54,33 +42,35 @@ public class cooliesIndexer {
      * @param tc
      * @return List of return values from Redis.
      */
-    public void pushToDatabase(TermCounter tc) {
+    public void pushToDatabase(String url, int translations, int OutGoingUrls, TermCounter tc) {
         
         for (String term: tc.keySet()) {
             int count =tc.get(term);
             if(Database.masterDB.containsKey(term)){
-                Database.masterDB.get(term).put(getUrlID(tc.getLabel(), tc), count);
+                Database.masterDB.get(term).put(getUrlID(url, translations, OutGoingUrls), count);
             }else{
                 Database.masterDB.put(term, new HashMap<Integer, Integer>());
-                Database.masterDB.get(term).put(getUrlID(tc.getLabel(), tc), count);
+                Database.masterDB.get(term).put(getUrlID(url, translations, OutGoingUrls), count);
             }
         }
         
             
     }
     
-    
-    public Integer getUrlID(String url, TermCounter tc) {
-        // TODO Auto-generated method stub
-        if(Database.urlDB.containsKey(url)){
-            return (Integer) Database.urlDB.get(url).keySet().toArray()[0];
-        }else{
-            Database.urlDB.put(url, new HashMap<Integer, Integer>());
-            int id = Database.ID;
-            Database.urlDB.get(url).put(id,tc.getTranslations());
-            Database.ID++;
-            return id;
-        }
+    public Integer getUrlID(String url, int translations, int OutGoingUrls) {
+    	for(Integer urlID : Database.urlDB.keySet())
+    	{
+    		if(url == (String) Database.urlDB.get(urlID).get(0))
+    		{
+    			return urlID;
+    		}
+    	}
+    	Integer id = Database.ID;
+		Database.urlDB.put(id, new ArrayList());
+		Database.urlDB.get(id).add(url);
+		Database.urlDB.get(id).add(translations + OutGoingUrls);
+		Database.ID++;
+        return id;
     }
     
     public boolean checkGoogleCount(TermCounter tc){
