@@ -3,7 +3,7 @@ import java.util.HashMap;
 import org.jsoup.select.Elements;
 
 public class cooliesIndexer {
-    
+    public int UrlsIndexed = 0;
     
     
     /**
@@ -32,6 +32,7 @@ public class cooliesIndexer {
             
             // push the contents of the TermCounter to Redis
             pushToDatabase(url, translations, OutGoingUrls, tc);
+            UrlsIndexed++;
         }
         
     }
@@ -74,10 +75,11 @@ public class cooliesIndexer {
     }
     
     public boolean checkGoogleCount(TermCounter tc){
-        return tc.get("google")>5;
+        return tc.get("google")>2;
         
     }
-    
-    
-    
 }
+    
+    
+
+

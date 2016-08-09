@@ -51,7 +51,6 @@ public class Search
 //			System.out.println(results.get(urlID));
 			finalResults.put(url, termCount * 3 + pageRankRelevancy);
 		}
-		
 		System.out.println(SortMap(finalResults));
 	}
 	

@@ -1,5 +1,6 @@
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -11,6 +12,7 @@ public class WikiCrawler {
     // keeps track of where we started
     private final String source;
     private static int count;
+    private static HashSet<String> skipUrls = new HashSet<String>();
     
     
     private static cooliesIndexer index;
@@ -43,6 +45,10 @@ public class WikiCrawler {
         return queue.size();
     }
     
+    public boolean isCrawled(String url)
+    {
+    	return skipUrls.contains(url);
+    }
     public Integer isIndexed(String url)
     {
     	for(Integer urlID : Database.urlDB.keySet())
@@ -74,7 +80,7 @@ public class WikiCrawler {
         Integer urlID = isIndexed(url);
         if (urlID != null) 
         {
-            System.out.println("Already indexed.");
+            System.out.println("Already indexed." + url);
             //update relevancy score
             int initialRelevancy = (Integer) Database.urlDB.get(urlID).get(1);
             int newRel = initialRelevancy + 1;
@@ -83,7 +89,22 @@ public class WikiCrawler {
             return null;
         }
         
+        if(isCrawled(url))
+        {
+        	System.out.println("Already Crawled" + url);
+        	return null;
+        }
+        else
+        {
+        	skipUrls.add(url);
+        }
+        
+        //if new url index it if google appears twice
         DataNode stuffOnThisPage = wf.fetchData("https://en.wikipedia.org/wiki/" + url);
+        if(stuffOnThisPage == null)
+        {
+        	return null;
+        }
         Elements paragraphs = stuffOnThisPage.getParagraphs();
         int translations = stuffOnThisPage.getTranslations();
         int OutGoingUrls = queueInternalLinks(paragraphs);
@@ -143,18 +164,27 @@ public class WikiCrawler {
         
         // for testing purposes, load up the queue
         Elements paragraphs = wf.fetchData(source).getParagraphs();
+        if(paragraphs == null)
+        {
+        	System.out.println("Check internet connection");
+        }
         wc.queueInternalLinks(paragraphs);
         
+       
         // loop until you come across 1000 pages you already indexed
         count = 0;
-        do {
-            //System.out.println("KB: " + (double) (Runtime.getRuntime().freeMemory()));
-            wc.crawl();
-
+        while(index.UrlsIndexed < 5000 && count <50000)
+        {
             
+            wc.crawl();       
             count++;
-            //System.out.println("KB: " + (double) (Runtime.getRuntime().freeMemory()));
-        } while (count<200);
+            if(index.UrlsIndexed % 500 == 0)
+            {
+            	 Database.exportMasterDBToCSV();
+                 Database.exportUrlDBToCSV();
+            }
+        } 
+        
         Database.exportMasterDBToCSV();
         Database.exportUrlDBToCSV();
     }

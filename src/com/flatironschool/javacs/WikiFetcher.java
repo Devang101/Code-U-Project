@@ -16,6 +16,7 @@ import org.jsoup.select.Elements;
 public class WikiFetcher {
 	private long lastRequestTime = -1;
 	private long minInterval = 1000;
+	private int TimeOutcount = 0;
 
 	/**
 	 * Fetches and parses a URL string, returning a list of paragraph elements and
@@ -27,7 +28,8 @@ public class WikiFetcher {
 	 */
 	public DataNode fetchData(String url) throws IOException {
 		sleepIfNeeded();
-
+		
+		try{
 		// download and parse the document
 		Connection conn = Jsoup.connect(url);
 		Document doc = conn.get();
@@ -41,7 +43,21 @@ public class WikiFetcher {
 
 		// TODO: avoid selecting paragraphs from sidebars and boxouts
 		Elements paras = content.select("p");
+		TimeOutcount = 0;
 		return new DataNode(paras, translations);
+		}
+		catch(Exception e)
+		{
+			
+			sleepIfNeeded();
+			System.out.println("Time out error on " + url + " ... trying again");
+			TimeOutcount++;
+			if(TimeOutcount >= 10)
+			{
+				return null;
+			}
+			return fetchData(url);
+		}
 	}
 
 	/**
