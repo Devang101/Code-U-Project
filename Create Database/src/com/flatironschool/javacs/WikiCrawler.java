@@ -16,7 +16,7 @@ public class WikiCrawler {
     
     
     private static cooliesIndexer index;
-    //sprivate static TermCounter tc;
+    //private static TermCounter tc;
     
     // queue of URLs to be indexed
     private Queue<String> queue = new LinkedList<String>();
@@ -173,12 +173,12 @@ public class WikiCrawler {
        
         // loop until you come across 1000 pages you already indexed
         count = 0;
-        while(index.UrlsIndexed < 5000 && count <50000)
+        while(index.UrlsIndexed < 5000 && count <15000)
         {
             
             wc.crawl();       
             count++;
-            if(index.UrlsIndexed % 500 == 0)
+            if(index.UrlsIndexed % 3 == 0)
             {
             	 Database.exportMasterDBToCSV();
                  Database.exportUrlDBToCSV();
