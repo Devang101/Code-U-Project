@@ -1,7 +1,7 @@
 # Code-U-Project
 Code U is a invite only development program hosted by Google, where I was given an online curriculum, a Google Engineer as a mentor, and a capstone project where my partner and I designed and developed a search engine from starter code to present at the Code U summit at Google’s HQ in Mountain View. We took the components of a rudamentary search engine, put them together, and created our own search engine with improvements. The orginal program was a wikipedia search engine that could only perform 1 word queries.
 
-Key improvements that we implemented include
+Key improvements that we implemented include:
 
   -Ignoring Common Words as a factor in the relevancy score given to webpages
   
